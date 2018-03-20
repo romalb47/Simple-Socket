@@ -17,7 +17,11 @@ class Discover(object):
 		return self._proxy.announce(server_uid, service_uid, connection_list)
 		
 	def search(self, server_uid, service_uid):
-		return self._proxy.search(server_uid, service_uid)
+		try:
+			liste = self._proxy.search(server_uid, service_uid)
+		except:
+			return []
+		return liste
 		
 	def close(self):
 		pass

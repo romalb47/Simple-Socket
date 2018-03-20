@@ -66,6 +66,7 @@ class ClientSocket(object):
 			
 			for discover in discover_module:
 				utils.each(connection_list.add, discover.search(self.server_uid, self.service_uid))
+			print("Liste de connexion: "+str(connection_list))
 			
 			connection_wrapper = self.get_connection(connection_list)
 			
@@ -102,7 +103,7 @@ class ClientSocket(object):
 		for proto in uri_list:
 			module = proto.split("://")[0]
 			m = importlib.import_module("SimpleSocket.wrapper."+str(module))
-			wrapper_module.append(m.Connect(proto.split("://", 1)[1]))
+			wrapper_module.append(m.Client(proto.split("://", 1)[1]))
 
 		for wrapper in wrapper_module: #TODO Parser les IPs afin de prioritiser les locals
 			wrapper.init()
