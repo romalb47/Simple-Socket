@@ -46,7 +46,7 @@ class ClientSocket(object):
 		self._queue_out.put_nowait( (priority, data) )
 	
 	def run_loop(self):
-		connected_socket = 0				
+		connected_socket = 5
 		discover_module = []
 				
 		connection_list = set()
@@ -62,13 +62,18 @@ class ClientSocket(object):
 		for discover in discover_module:
 			discover.connect()
 
+		connection_wrapper = []
+		last_discover_ask = 0
+		last_refresh_ask = 0
 		while not self._stop_thread:
 			
-			for discover in discover_module:
-				utils.each(connection_list.add, discover.search(self.server_uid, self.service_uid))
-			print("Liste de connexion: "+str(connection_list))
+			if (last_discover_ask+10) < time.time():
+				for discover in discover_module:
+					utils.each(connection_list.add, discover.search(self.server_uid, self.service_uid))
+				print("Liste de connexion: "+str(connection_list))
+				last_discover_ask = time.time()
 			
-			connection_wrapper = self.get_connection(connection_list)
+			self.get_connection(connection_list, connection_wrapper)
 			
 			while connected_socket > 0:
 				
@@ -88,13 +93,13 @@ class ClientSocket(object):
 						finally:
 							break
 
-				connected_socket = self.refresh_connection(connection_wrapper)
-				time.sleep(5)
+				if (last_refresh_ask+60) < time.time():
+					connected_socket = self.refresh_connection(connection_wrapper)
+					last_refresh_ask = time.time()
+				time.sleep(0.05)
 
-			
-			time.sleep(5)
 
-	def get_connection(self, uri_list):
+	def get_connection(self, uri_list, connection_wrapper):
 		
 		connected_socket = 0
 			
@@ -102,13 +107,23 @@ class ClientSocket(object):
 				
 		for proto in uri_list:
 			module = proto.split("://")[0]
+			uri = proto.split("://", 1)[1]
+			
+			already_exist = False
+			for wrapper in connection_wrapper:
+				if uri == wrapper.uri:
+					already_exist = True
+					
+			if already_exist:
+				continue
+			
 			m = importlib.import_module("SimpleSocket.wrapper."+str(module))
-			wrapper_module.append(m.Client(proto.split("://", 1)[1]))
+			connection_wrapper.append(m.Client(uri))
 
-		for wrapper in wrapper_module: #TODO Parser les IPs afin de prioritiser les locals
+		for wrapper in connection_wrapper: #TODO Parser les IPs afin de prioritiser les locals
 			wrapper.init()
 			
-		for wrapper in wrapper_module:
+		for wrapper in connection_wrapper:
 			wrapper.connect()
 			if wrapper.is_connected == True:
 				connected_socket += 1

@@ -4,7 +4,7 @@
 from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
-SERVICE_ANNOUNCE = {"0x363436383836#toto": ["tcp://tata.com:5445"], "0xa4173116772e#toto": ["tcp://tato.com:5445"]}
+SERVICE_ANNOUNCE = {"0x363436383836#toto": ["udp://tata.com:5445"], "0xa4173116772e#toto": ["udp://tato.com:5445"]}
 
 # Create server
 server = SimpleXMLRPCServer(("localhost", 8000), requestHandler=SimpleXMLRPCRequestHandler)
